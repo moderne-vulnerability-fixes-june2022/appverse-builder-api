@@ -1,0 +1,9 @@
+name: "myapp"
+engine:
+  name: "native"
+  version: 1.0
+  platforms:
+    - name: "ubuntu"
+      version: 14
+      flavors:
+        - name: "flavor1"

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Build Finished Successfully</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<style>
+    /* Shrink Wrap Layout Pattern CSS */
+    @media only screen and (max-width: 599px) {
+        td[class="hero"] img {
+            width: 100%;
+            height: auto !important;
+        }
+
+        td[class="pattern"] td {
+            width: 100%;
+        }
+    }
+</style>
+<table cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="pattern" width="600">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="hero">
+                        <img src="http://placehold.it/600x100/14892c/ffffff&amp;text=BUILD+SUCCESS" alt=""
+                             style="display: block; border: 0;"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family: arial,sans-serif; color: #333;">
+                        <h1>Build Request <span th:text="${request.id}">999</span> has finished</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left"
+                        style="font-family: arial,sans-serif; font-size: 14px; line-height: 20px !important; color: #666;">
+                        Build was success with the following reason:
+                        <p style="font-weight: bolder;" th:text="${request.message}">Build Success</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="max-width: 600px">
+                            <tr style="color: #666">
+                                <th align="left" style="padding-right: 12px">Name</th>
+                                <th align="left" style="padding-right: 12px">Distribution Channel</th>
+                                <th align="left" style="padding-right: 12px">Download link</th>
+                            </tr>
+                            <!--/*@thymesVar id="artifact" type="org.appverse.builder.distribution.Artifact"*/-->
+                            <tr th:each="artifact : ${artifacts}">
+                                <td align="left" th:text="${artifact.name}" style="padding-right: 12px">build.log</td>
+                                <td align="left" th:text="${artifact.distributionChannelName}"
+                                    style="padding-right: 12px">Local File System
+                                </td>
+                                <td align="left"><a href="http://localhost/my/artifact" th:href="${artifact.uri}"
+                                                    style="padding-right: 12px">Download</a></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

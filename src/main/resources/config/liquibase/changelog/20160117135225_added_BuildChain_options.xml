@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet author="panthro (generated)" id="1453038778611-1">
+        <createTable tableName="build_chain_option">
+            <column name="build_chain_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(255)"/>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="panthro (generated)" id="1453038778611-2">
+        <addPrimaryKey columnNames="build_chain_id, name" tableName="build_chain_option"/>
+    </changeSet>
+    <changeSet author="panthro (generated)" id="1453038778611-3">
+        <addForeignKeyConstraint baseColumnNames="build_chain_id" baseTableName="build_chain_option"
+                                 constraintName="FK_ct3pi8t5k91x8rkhu0cfcy35l" deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="build_chain"/>
+    </changeSet>
+</databaseChangeLog>

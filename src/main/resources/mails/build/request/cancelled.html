@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Build Cancelled</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<style>
+    /* Shrink Wrap Layout Pattern CSS */
+    @media only screen and (max-width: 599px) {
+        td[class="hero"] img {
+            width: 100%;
+            height: auto !important;
+        }
+
+        td[class="pattern"] td {
+            width: 100%;
+        }
+    }
+</style>
+<table cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="pattern" width="600">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="hero">
+                        <img src="http://placehold.it/600x100/d04437/ffffff&amp;text=BUILD+CANCELLED" alt=""
+                             style="display: block; border: 0;"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family: arial,sans-serif; color: #333;">
+                        <h1>Build Request <span th:text="${request.id}">999</span> was cancelled</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left"
+                        style="font-family: arial,sans-serif; font-size: 14px; line-height: 20px !important; color: #666;">
+                        Build was cancelled with the following reason:
+                        <p style="font-weight: bolder;" th:text="${request.message}">No engine Found</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

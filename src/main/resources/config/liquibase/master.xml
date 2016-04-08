@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <include file="classpath:config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151216122155_added_entity_Engine.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151221152327_added_entity_EngineVariable.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151221153256_added_entity_EnginePlatform.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151221153602_added_entity_EnginePlatformVariable.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151222124351_added_entity_DistributionChannel.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151222181317_distribution_channel_property.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151223122840_added_entity_NotificationChannel.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151223131804_notification_channel_property.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151223160040_added_entity_BuildAgent.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151223160936_build_agent_property.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151224120000_added_entity_BuildChain.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151224130000_added_entity_BuildRequest.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151228124607_add_Engine_and_EnginePlatform_enabled.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20151231114532_initial_load_oauth_clients.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20160115164826_added_EnginePlatform_agentRequirements.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20160117135225_added_BuildChain_options.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20160217182219_add_EnginePlatform_ImageType.xml"
+             relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20160222145828_added_buildAgent_agenttype.xml"
+             relativeToChangelogFile="false"/>
+    <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
+</databaseChangeLog>

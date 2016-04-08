@@ -1,0 +1,13 @@
+name: "myapp"
+engine:
+  name: "native"
+  version: "1.0"
+  platforms:
+    - name: "android"
+      version: 23
+      env:
+        mode: release
+      flavors:
+        - name: "android-debug"
+          env:
+            mode: debug

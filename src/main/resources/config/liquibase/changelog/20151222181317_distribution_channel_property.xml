@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet author="panthro (generated)" id="1450804400080-1">
+        <createTable tableName="distribution_channel_property">
+            <column name="distribution_channel_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="panthro (generated)" id="1450804400080-2">
+        <addPrimaryKey columnNames="distribution_channel_id, name" tableName="distribution_channel_property"/>
+    </changeSet>
+    <changeSet author="panthro (generated)" id="1450804400080-3">
+        <addForeignKeyConstraint baseColumnNames="distribution_channel_id" baseTableName="distribution_channel_property" constraintName="FK_ip03orjehve9skob9k9rpfb6l" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="distribution_channel"/>
+    </changeSet>
+    <changeSet author="panthro (generated)" id="1450804400080-4">
+        <addNotNullConstraint columnDataType="varchar(255)" columnName="version" tableName="engine"/>
+    </changeSet>
+</databaseChangeLog>
