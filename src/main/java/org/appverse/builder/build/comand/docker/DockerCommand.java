@@ -49,7 +49,7 @@ public class DockerCommand extends BuildCommand {
         environmentVariables.forEach((key, value) -> {
             if (!StringUtils.isEmpty(value) && !value.equals(buildScript)) {
                 args.add("-e");
-                args.add(key + "=" + value);
+                args.add(key + "='" + value + "'");
             }
         });
         args.add(getImageName());
