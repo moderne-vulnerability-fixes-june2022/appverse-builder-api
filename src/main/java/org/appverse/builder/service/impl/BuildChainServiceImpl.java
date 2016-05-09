@@ -134,6 +134,7 @@ public class BuildChainServiceImpl implements BuildChainService {
             if (requests.isEmpty()) {
                 requests.add(createBadRequest("Could not determine the build information from the configuration file."));
             }
+            requests.forEach(buildRequest -> buildRequest.setChain(buildChain));
             buildChain.getRequests().addAll(requests);
         } catch (IOException e) {
             buildChain.getRequests().add(createBadRequest("Could not extract payload or read config file: " + e.getMessage()));
