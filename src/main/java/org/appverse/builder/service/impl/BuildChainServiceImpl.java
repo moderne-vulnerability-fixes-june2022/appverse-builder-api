@@ -128,16 +128,15 @@ public class BuildChainServiceImpl implements BuildChainService {
                             requests.add(request);
                             }));
                 } else {
-                    requests.add(createBadRequest("You have an invalid configuration file [" + buildInfoDTO + "]"));
+                    requests.add(createBadRequest("You have an invalid configuration file [" + buildInfoDTO + "]", buildChain));
                 }
             });
             if (requests.isEmpty()) {
-                requests.add(createBadRequest("Could not determine the build information from the configuration file."));
+                requests.add(createBadRequest("Could not determine the build information from the configuration file.", buildChain));
             }
-            requests.forEach(buildRequest -> buildRequest.setChain(buildChain));
             buildChain.getRequests().addAll(requests);
         } catch (IOException e) {
-            buildChain.getRequests().add(createBadRequest("Could not extract payload or read config file: " + e.getMessage()));
+            buildChain.getRequests().add(createBadRequest("Could not extract payload or read config file: " + e.getMessage(), buildChain));
             return buildChainMapper.buildChainToBuildChainDTO(buildChain);
         }
         return buildChainMapper.buildChainToBuildChainDTO(buildChainRepository.save(buildChain));
@@ -173,11 +172,12 @@ public class BuildChainServiceImpl implements BuildChainService {
 
     }
 
-    private BuildRequest createBadRequest(String message) {
+    private BuildRequest createBadRequest(String message, BuildChain chain) {
         BuildRequest request = new BuildRequest();
         request.setEngine(appverseBuilderProperties.getBuild().getUnknownEngine());
         request.setFlavor(appverseBuilderProperties.getBuild().getUnknownFlavor());
         request.setPlatform(appverseBuilderProperties.getBuild().getUnknownPlatform());
+        request.setChain(chain);
         request.start();
         request.finish(BuildStatus.CANCELLED, message);
         return request;
