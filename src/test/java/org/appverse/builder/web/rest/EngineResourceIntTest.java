@@ -7,6 +7,7 @@ import org.appverse.builder.domain.EngineVariable;
 import org.appverse.builder.repository.EngineRepository;
 import org.appverse.builder.repository.EngineVariableRepository;
 import org.appverse.builder.service.EngineService;
+import org.appverse.builder.service.EngineVariableService;
 import org.appverse.builder.web.rest.dto.EngineDTO;
 import org.appverse.builder.web.rest.mapper.EngineMapper;
 import org.junit.Before;
@@ -32,6 +33,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -72,6 +74,8 @@ public class EngineResourceIntTest {
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
     @Inject
     private EngineVariableRepository engineVariableRepository;
+    @Inject
+    private EngineVariableService engineVariableService;
 
     private MockMvc restEngineMockMvc;
 
@@ -83,6 +87,7 @@ public class EngineResourceIntTest {
         EngineResource engineResource = new EngineResource();
         ReflectionTestUtils.setField(engineResource, "engineService", engineService);
         ReflectionTestUtils.setField(engineResource, "engineMapper", engineMapper);
+        ReflectionTestUtils.setField(engineResource, "engineVariableService", engineVariableService);
         this.restEngineMockMvc = MockMvcBuilders.standaloneSetup(engineResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();
@@ -220,9 +225,9 @@ public class EngineResourceIntTest {
 
         EngineVariable engineVariable = new EngineVariable();
         engineVariable.setName(RandomStringUtils.randomAlphabetic(10));
-        engineVariable.setDefaultValue(RandomStringUtils.random(10));
+        engineVariable.setDefaultValue(RandomStringUtils.randomAlphabetic(10));
         engineVariable.setRequired(true);
-        engineVariable.setDescription(RandomStringUtils.random(50));
+        engineVariable.setDescription(RandomStringUtils.randomAlphabetic(50));
         engineVariable.setEngine(engine);
 
         engineVariable = engineVariableRepository.save(engineVariable);
