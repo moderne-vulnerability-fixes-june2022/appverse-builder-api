@@ -4,7 +4,9 @@ import com.codahale.metrics.annotation.Timed;
 import org.appverse.builder.domain.EnginePlatform;
 import org.appverse.builder.security.AuthoritiesConstants;
 import org.appverse.builder.service.EnginePlatformService;
+import org.appverse.builder.service.EnginePlatformVariableService;
 import org.appverse.builder.web.rest.dto.EnginePlatformDTO;
+import org.appverse.builder.web.rest.dto.EnginePlatformVariableDTO;
 import org.appverse.builder.web.rest.mapper.EnginePlatformMapper;
 import org.appverse.builder.web.rest.util.HeaderUtil;
 import org.appverse.builder.web.rest.util.PaginationUtil;
@@ -43,6 +45,10 @@ public class EnginePlatformResource {
 
     @Inject
     private EnginePlatformMapper enginePlatformMapper;
+
+    @Inject
+    private EnginePlatformVariableService enginePlatformVariableService;
+
 
     /**
      * POST  /enginePlatforms -> Create a new enginePlatform.
@@ -129,5 +135,15 @@ public class EnginePlatformResource {
         log.debug("REST request to delete EnginePlatform : {}", id);
         enginePlatformService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("enginePlatform", id.toString())).build();
+    }
+
+    @RequestMapping(value = "/enginePlatforms/variables/{id}",
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    @Secured(AuthoritiesConstants.USER)
+    public ResponseEntity<List<EnginePlatformVariableDTO>> getEnginePlatformVariables(@PathVariable Long id) {
+        log.debug("REST request to get variables for EnginePlatform : {}", id);
+        return new ResponseEntity<>(enginePlatformVariableService.findByEnginePlatformId(id), HttpStatus.OK);
     }
 }
