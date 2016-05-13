@@ -4,7 +4,9 @@ import com.codahale.metrics.annotation.Timed;
 import org.appverse.builder.domain.Engine;
 import org.appverse.builder.security.AuthoritiesConstants;
 import org.appverse.builder.service.EngineService;
+import org.appverse.builder.service.EngineVariableService;
 import org.appverse.builder.web.rest.dto.EngineDTO;
+import org.appverse.builder.web.rest.dto.EngineVariableDTO;
 import org.appverse.builder.web.rest.mapper.EngineMapper;
 import org.appverse.builder.web.rest.util.HeaderUtil;
 import org.appverse.builder.web.rest.util.PaginationUtil;
@@ -40,6 +42,9 @@ public class EngineResource {
 
     @Inject
     private EngineService engineService;
+
+    @Inject
+    private EngineVariableService engineVariableService;
 
     @Inject
     private EngineMapper engineMapper;
@@ -129,5 +134,19 @@ public class EngineResource {
         log.debug("REST request to delete Engine : {}", id);
         engineService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("engine", id.toString())).build();
+    }
+
+    @RequestMapping(value = "/engines/variables/{id}",
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    @Secured(AuthoritiesConstants.USER)
+    public ResponseEntity<List<EngineVariableDTO>> getEngineVariables(@PathVariable Long id){
+        log.debug("REST request to get variables for Engine : {}", id);
+
+        List<EngineVariableDTO> engineVariables = engineVariableService.findByEngineId(id);
+
+        return new ResponseEntity<>(engineVariables, HttpStatus.OK);
+
     }
 }
