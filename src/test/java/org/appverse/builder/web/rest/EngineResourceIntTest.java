@@ -1,8 +1,11 @@
 package org.appverse.builder.web.rest;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.appverse.builder.Application;
 import org.appverse.builder.domain.Engine;
+import org.appverse.builder.domain.EngineVariable;
 import org.appverse.builder.repository.EngineRepository;
+import org.appverse.builder.repository.EngineVariableRepository;
 import org.appverse.builder.service.EngineService;
 import org.appverse.builder.web.rest.dto.EngineDTO;
 import org.appverse.builder.web.rest.mapper.EngineMapper;
@@ -67,6 +70,8 @@ public class EngineResourceIntTest {
 
     @Inject
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
+    @Inject
+    private EngineVariableRepository engineVariableRepository;
 
     private MockMvc restEngineMockMvc;
 
@@ -204,6 +209,34 @@ public class EngineResourceIntTest {
             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()))
             .andExpect(jsonPath("$.version").value(DEFAULT_VERSION.toString()))
             .andExpect(jsonPath("$.enabled").value(DEFAULT_ENABLED.booleanValue()));
+    }
+
+
+    @Test
+    @Transactional
+    public void getEngineVariablesByEngine() throws Exception {
+        // Initialize the database
+        engineRepository.saveAndFlush(engine);
+
+        EngineVariable engineVariable = new EngineVariable();
+        engineVariable.setName(RandomStringUtils.randomAlphabetic(10));
+        engineVariable.setDefaultValue(RandomStringUtils.random(10));
+        engineVariable.setRequired(true);
+        engineVariable.setDescription(RandomStringUtils.random(50));
+        engineVariable.setEngine(engine);
+
+        engineVariable = engineVariableRepository.save(engineVariable);
+
+
+        // Get the engine
+        restEngineMockMvc.perform(get("/api/engines/variables/{id}", engine.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$[*].id").value(engineVariable.getId().intValue()))
+            .andExpect(jsonPath("$[*].name").value(engineVariable.getName()))
+            .andExpect(jsonPath("$[*].description").value(engineVariable.getDescription()))
+            .andExpect(jsonPath("$[*].defaultValue").value(engineVariable.getDefaultValue()))
+            .andExpect(jsonPath("$[*].required").value(engineVariable.getRequired()));
     }
 
     @Test
