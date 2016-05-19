@@ -25,5 +25,7 @@
              relativeToChangelogFile="false"/>
     <include file="classpath:config/liquibase/changelog/20160222145828_added_buildAgent_agenttype.xml"
              relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/20160519172445_load_non_expire_id.xml"
+             relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
 </databaseChangeLog>
