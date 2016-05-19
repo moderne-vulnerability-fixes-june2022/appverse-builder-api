@@ -1,2 +1,2 @@
 client_id;resource_ids;client_secret;scope;authorized_grant_types;web_server_redirect_uri;authorities;access_token_validity;refresh_token_validity;additional_information;autoapprove
-CIClient;NULL;pRb7nRm6LVqZt3FV3MTU7tSK7n747j;ci;;NULL;NULL;0;0;NULL;1
+CIClient;NULL;pRb7nRm6LVqZt3FV3MTU7tSK7n747j;ci;password;NULL;NULL;0;0;NULL;1
