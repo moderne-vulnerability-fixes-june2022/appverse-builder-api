@@ -163,6 +163,8 @@ public class AppverseBuilderProperties {
          * 48h by default
          */
         private Integer downloadExpireAfterSeconds = 172800;
+        private String nonExpireTokenClientId = "CIClient";
+        private String nonExpireTokenScope = "ci";
 
         public Ldap getLdap() {
             return Ldap;
@@ -194,6 +196,22 @@ public class AppverseBuilderProperties {
 
         public void setDownloadExpireAfterSeconds(Integer downloadExpireAfterSeconds) {
             this.downloadExpireAfterSeconds = downloadExpireAfterSeconds;
+        }
+
+        public String getNonExpireTokenClientId() {
+            return nonExpireTokenClientId;
+        }
+
+        public void setNonExpireTokenClientId(String nonExpireTokenClientId) {
+            this.nonExpireTokenClientId = nonExpireTokenClientId;
+        }
+
+        public String getNonExpireTokenScope() {
+            return nonExpireTokenScope;
+        }
+
+        public void setNonExpireTokenScope(String nonExpireTokenScope) {
+            this.nonExpireTokenScope = nonExpireTokenScope;
         }
 
         public static class Ldap {
