@@ -1,5 +1,6 @@
 package org.appverse.builder.web.rest.util;
 
+import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -7,9 +8,18 @@ import net.lingala.zip4j.io.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -21,6 +31,8 @@ public class BundleInformationExtractor {
     private static final String CF_BUNDLE_IDENTIFIER = "CFBundleIdentifier";
 
     private static final Logger LOG = LoggerFactory.getLogger(BundleInformationExtractor.class);
+    public static final String BUNDLE_IDENTIFIER = "bundle-identifier";
+    public static final String BUNDLE_VERSION = "bundle-version";
 
 
     @SuppressWarnings("unchecked")
@@ -34,23 +46,43 @@ public class BundleInformationExtractor {
         return filteredStream
             .filter(fileHeader -> fileHeader.getFileName().matches(".*\\.plist"))
             .map(fileHeader -> {
+                Optional<BundleInformation> result;
                 try {
                     ZipInputStream zipInputStream = ipaAsZip.getInputStream(fileHeader);
-                    Object o = PropertyListParser.parse(zipInputStream).toJavaObject();
-                    if (o instanceof HashMap) {
-                        HashMap<String, String> map = (HashMap<String, String>) o;
-                        if (map.containsKey(CF_BUNDLE_IDENTIFIER) && map.containsKey(CF_BUNDLE_VERSION)) {
-                            BundleInformation bundleInformation = new BundleInformation(map.get(CF_BUNDLE_IDENTIFIER), map.get(CF_BUNDLE_VERSION));
-                            LOG.debug("Found Bundle information {}", bundleInformation);
-                            return bundleInformation;
-                        }
-                    }
+                    result = getBundleInformationFromPlistStream(zipInputStream);
                 } catch (Exception e) {
                     LOG.info("There was an error trying to get input stream from file {} inside ipa {} ", fileHeader, ipaFile);
+                    result = Optional.empty();
                 }
-                return null;
-            }).filter(ipaInformation -> ipaInformation != null)
+                return result;
+            }).filter(Optional::isPresent)
+            .map(Optional::get)
             .findAny();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Optional<BundleInformation> getBundleInformationFromPlistStream(InputStream plistStream) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
+        String plist = PropertyListParser.parse(plistStream).toXMLPropertyList();
+
+        Optional<String> bundleId = findByKeyInPlist(plist, CF_BUNDLE_IDENTIFIER);
+        bundleId = bundleId.isPresent() ? bundleId : findByKeyInPlist(plist, BUNDLE_IDENTIFIER);
+        Optional<String> bundleVersion = findByKeyInPlist(plist, CF_BUNDLE_VERSION);
+        bundleVersion = bundleVersion.isPresent() ? bundleVersion : findByKeyInPlist(plist, BUNDLE_VERSION);
+        if (bundleId.isPresent() && bundleVersion.isPresent()) {
+            BundleInformation bundleInformation = new BundleInformation(bundleId.get(), bundleVersion.get());
+            LOG.debug("Found Bundle information {}", bundleInformation);
+            return Optional.of(bundleInformation);
+        }
+        return Optional.empty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Optional<String> findByKeyInPlist(String plist, String key) {
+        Matcher matcher = Pattern.compile(".+<key>" + key + "</key>[\\r\\n\\t\\s]*<string>(.*)</string>.*", Pattern.MULTILINE).matcher(plist);
+        if (matcher.find()) {
+            return Optional.ofNullable(matcher.group(1));
+        }
+        return Optional.empty();
     }
 
 
