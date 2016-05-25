@@ -31,7 +31,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class AuthTokenResource {
 
-    public static final String PROPERTIES_TOKEN_NAME = "TOKEN_NAME";
+    public static final String TOKEN_NAME = "token_name";
     private final Logger log = LoggerFactory.getLogger(AuthTokenResource.class);
 
     @Inject
