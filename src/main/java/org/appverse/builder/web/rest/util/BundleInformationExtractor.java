@@ -15,11 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -60,7 +58,6 @@ public class BundleInformationExtractor {
             .findAny();
     }
 
-    @SuppressWarnings("unchecked")
     public static Optional<BundleInformation> getBundleInformationFromPlistStream(InputStream plistStream) throws IOException, PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         String plist = PropertyListParser.parse(plistStream).toXMLPropertyList();
 
@@ -76,7 +73,6 @@ public class BundleInformationExtractor {
         return Optional.empty();
     }
 
-    @SuppressWarnings("unchecked")
     private static Optional<String> findByKeyInPlist(String plist, String key) {
         Matcher matcher = Pattern.compile(".+<key>" + key + "</key>[\\r\\n\\t\\s]*<string>(.*)</string>.*", Pattern.MULTILINE).matcher(plist);
         if (matcher.find()) {
