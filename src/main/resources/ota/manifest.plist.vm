@@ -50,10 +50,10 @@
                     <string>software</string>
                     <!-- optional. displayed during download; typically company name -->
                     <key>subtitle</key>
-                    <string>${SUBTITLE}</string>
+                    <string>#if(${SUBTITLE}){DISPLAY_NAME}#{else}Company Name#end</string>
                     <!-- required.  the title to display during the download. -->
                     <key>title</key>
-                    <string>${DISPLAY_NAME}</string>
+                    <string>#if(${DISPLAY_NAME}){DISPLAY_NAME}#{else}Unnamed#end</string>
                 </dict>
             </dict>
         </array>
