@@ -2,7 +2,6 @@ package org.appverse.builder.config;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import liquibase.integration.spring.SpringLiquibase;
 import org.appverse.builder.config.liquibase.AsyncSpringLiquibase;
@@ -11,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.context.ApplicationContextException;
@@ -26,7 +26,6 @@ import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Optional;
 
 @Configuration
 @EnableJpaRepositories("org.appverse.builder.repository")
@@ -44,7 +43,7 @@ public class DatabaseConfiguration {
 
     @Bean(destroyMethod = "close")
     @ConditionalOnExpression("#{!environment.acceptsProfiles('cloud') && !environment.acceptsProfiles('heroku')}")
-    public DataSource dataSource(DataSourceProperties dataSourceProperties, AppverseBuilderProperties appverseBuilderProperties) {
+    public DataSource dataSource(DataSourceProperties dataSourceProperties) {
         log.debug("Configuring Datasource");
         if (dataSourceProperties.getUrl() == null) {
             log.error("Your database connection pool configuration is incorrect! The application" +
@@ -53,24 +52,19 @@ public class DatabaseConfiguration {
 
             throw new ApplicationContextException("Database connection pool is not configured correctly");
         }
-        HikariConfig config = new HikariConfig();
-        //This relies only on the jdbcUrl and DriverManager to guess the correct driver
-        Optional.ofNullable(dataSourceProperties.getUrl()).ifPresent(config::setJdbcUrl);
-        config.setConnectionTestQuery("select 1;");
+        HikariDataSource hikariDataSource = (HikariDataSource) DataSourceBuilder
+            .create(dataSourceProperties.getClassLoader())
+            .type(HikariDataSource.class)
+            .driverClassName(dataSourceProperties.getDriverClassName())
+            .url(dataSourceProperties.getUrl())
+            .username(dataSourceProperties.getUsername())
+            .password(dataSourceProperties.getPassword())
+            .build();
 
-        Optional.ofNullable(dataSourceProperties.getUsername()).ifPresent(config::setUsername);
-        Optional.ofNullable(dataSourceProperties.getPassword()).ifPresent(config::setPassword);
-
-        //MySQL optimizations, see https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration
-        if (dataSourceProperties.getUrl() != null && dataSourceProperties.getUrl().startsWith("jdbc:mysql")) {
-            config.addDataSourceProperty("cachePrepStmts", appverseBuilderProperties.getDatasource().isCachePrepStmts());
-            config.addDataSourceProperty("prepStmtCacheSize", appverseBuilderProperties.getDatasource().getPrepStmtCacheSize());
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", appverseBuilderProperties.getDatasource().getPrepStmtCacheSqlLimit());
-        }
         if (metricRegistry != null) {
-            config.setMetricRegistry(metricRegistry);
+            hikariDataSource.setMetricRegistry(metricRegistry);
         }
-        return new HikariDataSource(config);
+        return hikariDataSource;
     }
 
     /**
