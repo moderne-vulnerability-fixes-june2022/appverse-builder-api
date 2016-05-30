@@ -54,8 +54,14 @@
                                 <td align="left" th:text="${artifact.distributionChannelName}"
                                     style="padding-right: 12px">Local File System
                                 </td>
-                                <td align="left"><a href="http://localhost/my/artifact" th:href="${artifact.uri}"
-                                                    style="padding-right: 12px">Download</a></td>
+                                <td align="left">
+                                    <a href="http://localhost/my/artifact" th:href="${artifact.uri}"
+                                       style="padding-right: 12px">Download</a>
+                                    <a href="itms-services://?action=download-manifest&amp;url=http://localhost/artifact.ipa/manifest.plist"
+                                       th:href="@{itms-services://(action='download-manifest',url=(${artifact.uri} + '/manifest.plist'))}"
+                                       th:if="${artifact.name.endsWith('.ipa')}">OTA</a>
+                                </td>
+
                             </tr>
                         </table>
                     </td>
