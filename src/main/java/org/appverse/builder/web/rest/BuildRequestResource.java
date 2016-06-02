@@ -1,6 +1,7 @@
 package org.appverse.builder.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+import org.apache.commons.io.IOUtils;
 import org.appverse.builder.distribution.Artifact;
 import org.appverse.builder.domain.BuildRequest;
 import org.appverse.builder.security.SecurityUtils;
@@ -10,7 +11,6 @@ import org.appverse.builder.web.rest.dto.BuildRequestDTO;
 import org.appverse.builder.web.rest.mapper.BuildRequestMapper;
 import org.appverse.builder.web.rest.util.HeaderUtil;
 import org.appverse.builder.web.rest.util.PaginationUtil;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -165,8 +165,12 @@ public class BuildRequestResource {
                 response.flushBuffer();
                 logReader = new BufferedReader(new InputStreamReader(request.get()));
                 logReader.lines().forEachOrdered((line) -> {
-                    writer.println(line);
-                    writer.flush();
+                    try {
+                        writer.println(line);
+                        writer.flush();
+                    } catch (Throwable t) {
+                        log.info("Error writing log to the client");
+                    }
                 });
             } else {
                 response.setStatus(HttpStatus.NOT_FOUND.value());
