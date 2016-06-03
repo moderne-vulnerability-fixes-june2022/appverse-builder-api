@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public abstract class BuildExecutorWorker implements Runnable {
 
+    public static final String ARTIFACT_REGEX = "artifactRegex";
     private final Logger log = LoggerFactory.getLogger(BuildExecutorWorker.class);
 
     public static InputStream raceConditionStream() {
