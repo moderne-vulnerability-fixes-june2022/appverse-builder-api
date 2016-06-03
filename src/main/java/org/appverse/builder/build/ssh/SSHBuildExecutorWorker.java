@@ -191,7 +191,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             }
             stopWatch.stop();
             stopWatch.start(DOWNLOAD_ARTIFACTS);
-            Optional.ofNullable(request.getVariables().get("artifactRegex")).ifPresent(artifactsRegex -> {
+            Optional.ofNullable(request.getVariables().get(ARTIFACT_REGEX)).ifPresent(artifactsRegex -> {
                 getTemporaryArtifactsDir().ifPresent(localArtifactsDir -> {
                     try {
                         SFTPClient sftpClient = client.newSFTPClient();

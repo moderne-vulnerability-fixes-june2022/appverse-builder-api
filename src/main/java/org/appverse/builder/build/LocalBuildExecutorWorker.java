@@ -12,9 +12,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 /**
  * Created by panthro on 22/02/16.
@@ -118,21 +123,35 @@ public class LocalBuildExecutorWorker extends BuildExecutorWorker {
         }
 
 
-        Optional.ofNullable(request.getVariables().get("artifactRegex")).ifPresent(artifactsRegex -> {
+        Optional.ofNullable(request.getVariables().get(ARTIFACT_REGEX)).ifPresent(artifactsRegex -> {
             getTemporaryArtifactsDir().ifPresent(localArtifactsDir -> {
-                Optional.ofNullable(inputDir.listFiles()).ifPresent(files -> {
-                    Stream.of(files).filter(file -> file.getName().matches(artifactsRegex)).forEach(file -> {
-                        try {
-                            FileUtils.copyFileToDirectory(file, localArtifactsDir);
-                        } catch (IOException e) {
-                            log.warn("Error copying artifact {} to localArtifactsDir {} ", file, localArtifactsDir, e);
-                            logError("Could not copy artifact {} to local artifacts dir", file.getName());
-                        }
-                    });
-                });
+                try {
+                    Files.walkFileTree(inputDir.toPath(), new LocalArtifactFileVisitor(Pattern.compile(artifactsRegex), localArtifactsDir.toPath()));
+                } catch (Throwable e) {
+                    log.warn("Error getting artifacts from localArtifactsDir {} ", localArtifactsDir, e);
+                }
             });
         });
 
+    }
+
+    private class LocalArtifactFileVisitor extends SimpleFileVisitor<Path> {
+
+        private Pattern artifactRegex;
+        private Path localArtifactsDir;
+
+        public LocalArtifactFileVisitor(Pattern artifactRegex, Path localArtifactsDir) {
+            this.artifactRegex = artifactRegex;
+            this.localArtifactsDir = localArtifactsDir;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            if (Files.exists(file) && artifactRegex.matcher(file.toString()).find()) {
+                Files.copy(file, localArtifactsDir.resolve(file.getFileName()));
+            }
+            return super.visitFile(file, attrs);
+        }
     }
 }
 
