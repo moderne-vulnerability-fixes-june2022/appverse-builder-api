@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.*;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -115,10 +114,14 @@ public abstract class BuildExecutorWorker implements Runnable {
             public void println(String s) {
                 super.println(s);
                 super.flush();
-                connectedLoggers.forEach(writer -> {
-                    writer.println(s);
-                    writer.flush();
-                });
+                try {
+                    connectedLoggers.forEach(writer -> {
+                        writer.println(s);
+                        writer.flush();
+                    });
+                } catch (Throwable t) {
+                    log.warn("Error writing to to the log", t);
+                }
             }
 
             @Override
@@ -139,14 +142,14 @@ public abstract class BuildExecutorWorker implements Runnable {
                 if (currentBuildRequest == null) {
                     return raceConditionStream();
                 } else {
-                    logLock.lock();
+//                    logLock.lock();
                     final PipedOutputStream pipedOutputStream = new PipedOutputStream();
                     final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
                     final PrintWriter logger = new PrintWriter(pipedOutputStream);
-                    Files.lines(getBuildLogFile().toPath()).forEachOrdered(logger::println);
-                    logger.flush();
+//                    Files.lines(getBuildLogFile().toPath()).forEachOrdered(logger::println);
+//                    logger.flush();
                     connectedLoggers.add(logger);
-                    logLock.unlock();
+//                    logLock.unlock();
                     return pipedInputStream;
                 }
             } catch (IOException e) {
