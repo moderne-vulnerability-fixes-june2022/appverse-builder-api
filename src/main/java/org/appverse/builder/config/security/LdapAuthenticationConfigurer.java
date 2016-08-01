@@ -4,6 +4,8 @@ import org.appverse.builder.config.AppverseBuilderProperties;
 import org.appverse.builder.domain.User;
 import org.appverse.builder.security.AuthoritiesConstants;
 import org.appverse.builder.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Created by panthro on 01/02/16.
@@ -37,6 +40,8 @@ import java.util.UUID;
 @ConditionalOnProperty(name = "apb.auth.ldap.enabled", havingValue = "true")
 public class LdapAuthenticationConfigurer implements AuthenticationConfigurer {
 
+
+    private static final Logger LOG = LoggerFactory.getLogger(LdapAuthenticationConfigurer.class);
 
     @Inject
     private AppverseBuilderProperties appverseBuilderProperties;
@@ -79,10 +84,12 @@ public class LdapAuthenticationConfigurer implements AuthenticationConfigurer {
                 try {
                     return userDetailsService.loadUserByUsername(username);
                 } catch (UsernameNotFoundException e) {
+                    LOG.debug("Username {} not found in the database, mapping from LDAP", username);
                     Object emailValue = ctx.getObjectAttribute(ldapProperties().getEmailAttribute());
                     if (!(emailValue instanceof String)) {
-                        // Assume it's binary
-                        emailValue = new String((byte[]) emailValue);
+                        emailValue = Optional.ofNullable(emailValue)
+                            .map((bytes) -> new String((byte[]) bytes))// Assume it's binary
+                            .orElseGet(getDefaultEmailForUser(username));
                     }
                     Object firstName = ctx.getObjectAttribute(ldapProperties().getFirstNameAttribute());
                     if (!(firstName instanceof String) && firstName != null) {
@@ -100,14 +107,18 @@ public class LdapAuthenticationConfigurer implements AuthenticationConfigurer {
                             // Assume it's binary
                             fullName = new String((byte[]) fullName);
                         }
-                        if (fullName != null) {
-                            String[] names = ((String) fullName).split(" ");
-                            if (names.length > 0) {
-                                lastName = names[names.length - 1];
+                        try {
+                            if (fullName != null) {
+                                String[] names = ((String) fullName).split(" ");
+                                if (names.length > 0) {
+                                    lastName = names[names.length - 1];
+                                }
+                                if (names.length > 1) {
+                                    firstName = String.join(" ", (CharSequence[]) Arrays.copyOf(names, names.length - 1));
+                                }
                             }
-                            if (names.length > 1) {
-                                firstName = String.join(" ", (CharSequence[]) Arrays.copyOf(names, names.length - 1));
-                            }
+                        } catch (Throwable t) {
+                            LOG.warn("Could not determine first and last name for user {} from LDAP");
                         }
                     }
                     final User user = userService.createUserInformation(userDetails.getUsername(), Optional.ofNullable(userDetails.getPassword()).orElse(UUID.randomUUID().toString()), String.valueOf(firstName), String.valueOf(lastName), String.valueOf(emailValue), "en");
@@ -117,6 +128,11 @@ public class LdapAuthenticationConfigurer implements AuthenticationConfigurer {
             }
         };
 
+    }
+
+    private Supplier<String> getDefaultEmailForUser(String username) {
+        LOG.warn("User {} does not have e-mail configure in LDAP, returning default e-mail");
+        return () -> username + '@' + ldapProperties().getDefaultEmailDomain();
     }
 
     @Bean

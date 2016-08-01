@@ -232,6 +232,7 @@ public class AppverseBuilderProperties {
             private String firstNameAttribute = "givenName";
             private String lastNameAttribute = "sn";
             private String fullNameAttribute = "cn";
+            private String defaultEmailDomain = "appverse.org";
 
             public boolean isEnabled() {
                 return enabled;
@@ -360,6 +361,14 @@ public class AppverseBuilderProperties {
 
             public void setFullNameAttribute(String fullNameAttribute) {
                 this.fullNameAttribute = fullNameAttribute;
+            }
+
+            public String getDefaultEmailDomain() {
+                return defaultEmailDomain;
+            }
+
+            public void setDefaultEmailDomain(String defaultEmailDomain) {
+                this.defaultEmailDomain = defaultEmailDomain;
             }
         }
     }
