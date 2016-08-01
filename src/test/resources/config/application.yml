@@ -12,9 +12,7 @@
 
 spring:
     datasource:
-        driver-class-name: org.h2.jdbcx.JdbcDataSource
         url: jdbc:h2:mem:Apb;DB_CLOSE_DELAY=-1
-        name:
         username:
         password:
     jpa:
