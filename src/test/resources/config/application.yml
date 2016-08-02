@@ -72,3 +72,10 @@ apb:
         licenseUrl:
     agent:
         default-remote-root: /tmp/build/test
+    auth:
+      ldap:
+        enabled: true
+        url: ldap://localhost:6545
+        anonymous-read-only: true
+        user-search-filter: uid={0}
+
