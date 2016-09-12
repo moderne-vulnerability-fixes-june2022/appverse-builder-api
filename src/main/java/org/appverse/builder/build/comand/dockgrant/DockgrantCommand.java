@@ -58,6 +58,10 @@ public class DockgrantCommand extends BuildCommand {
         if (imageUrl != null) {
             args.add("--imageurl=" + getImageUrl());
         }
+        if (isQuiet()) {
+            args.add("-q");
+        }
+
         if (getBuildScript() != null) {
             args.add("--script");
             if (!isCreateScript()) {

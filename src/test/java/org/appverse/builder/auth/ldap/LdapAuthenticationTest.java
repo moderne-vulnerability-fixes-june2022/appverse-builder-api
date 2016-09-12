@@ -8,7 +8,6 @@ import org.appverse.builder.config.AppverseBuilderProperties;
 import org.appverse.builder.security.SecurityUtils;
 import org.appverse.builder.service.UserService;
 import org.appverse.builder.service.util.RandomUtil;
-import org.appverse.builder.web.rest.AuthTokenResource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,9 +48,6 @@ public class LdapAuthenticationTest {
 
     @Inject
     private UserService userService;
-
-    @Inject
-    private AuthTokenResource authTokenResource;
 
 
     private static final String BOB_USERNAME = "bob";

@@ -57,6 +57,7 @@ public class LdapAuthenticationConfigurer implements AuthenticationConfigurer {
         LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> configurer = auth.ldapAuthentication()
             .userDetailsContextMapper(userDetailsContextMapper())
             .ldapAuthoritiesPopulator(ldapAuthoritiesPopulator());
+        LOG.info("Configuring LDAP with properties {}", ldapProperties());
         if (ldapProperties().getUserDnPattern() != null) {
             configurer.userDnPatterns(ldapProperties().getUserDnPattern());
         }
@@ -119,6 +120,7 @@ public class LdapAuthenticationConfigurer implements AuthenticationConfigurer {
                             }
                         } catch (Throwable t) {
                             LOG.warn("Could not determine first and last name for user {} from LDAP");
+                            firstName = username;
                         }
                     }
                     final User user = userService.createUserInformation(userDetails.getUsername(), Optional.ofNullable(userDetails.getPassword()).orElse(UUID.randomUUID().toString()), String.valueOf(firstName), String.valueOf(lastName), String.valueOf(emailValue), "en");
