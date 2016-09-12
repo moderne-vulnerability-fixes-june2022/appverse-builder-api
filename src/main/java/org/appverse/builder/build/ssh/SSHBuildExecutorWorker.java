@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,6 +61,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
     public static final String BUILD = "BUILD";
     public static final String DOWNLOAD_ARTIFACTS = "DOWNLOAD ARTIFACTS";
     public static final int EXEC_PERMS = 755;
+    public static final int WAIT_FOR_CLEANUP = 3;
 
 
     public SSHBuildExecutorWorker(BuildAgentQueueController buildServerController) {
@@ -74,8 +76,12 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             Session session = client.startSession();
             // Create the remote dir where all build will occur
             final Session.Command rmDircommand = session.exec("rm -rf " + getRemoteRequestRootDir(request));
-            rmDircommand.join();
-            if (!hasExecutedSuccessfully(rmDircommand)) {
+            try {
+                rmDircommand.join(WAIT_FOR_CLEANUP, TimeUnit.SECONDS);
+                if (!hasExecutedSuccessfully(rmDircommand)) {
+                    logError("Could not cleanup all files");
+                }
+            } catch (Throwable t) {
                 logError("Could not cleanup all files");
             }
             log("Cleaning up artifacts");
@@ -111,7 +117,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             session = client.startSession();
             // Create the remote dir where all build will occur
             final Session.Command mkdirCommand = session.exec("mkdir -p " + remoteRequestBuildRoot);
-            mkdirCommand.join();
+            mkdirCommand.join(getTimeoutForRequest(), TimeUnit.SECONDS);
             log.debug("Command output: {}", IOUtils.readFully(mkdirCommand.getInputStream()).toString());
             if (!hasExecutedSuccessfully(mkdirCommand)) {
                 failed("Could not create necessary directories to execute the build");
@@ -154,7 +160,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             final Session.Command unzipCommand = session.exec("unzip " + remoteRequestBuildRoot + getAgentFileSeparator() + compressedInput.getName() + "  -d " + remoteRequestInputDir);
             BufferedReader unzipCommandReader = new BufferedReader(new InputStreamReader(unzipCommand.getInputStream()));
             unzipCommandReader.lines().forEachOrdered(s -> log.debug("UNZIP-RESULT: {}", s));
-            unzipCommand.join();
+            unzipCommand.join(getTimeoutForRequest(), TimeUnit.SECONDS);
             if (!hasExecutedSuccessfully(unzipCommand)) {
                 failed("Could not extract the payload on the build server");
                 return;
@@ -182,8 +188,9 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             Session.Command buildProcess = session.exec(buildCommand.asString());
             redirectInputStream(buildProcess.getInputStream());
             redirectErrorStream(buildProcess.getErrorStream());
-
-            buildProcess.join();
+            log.debug("[{}] Joining build execution command", getCurrentBuildRequest().getId());
+            buildProcess.join(getTimeoutForRequest(), TimeUnit.SECONDS);
+            log.debug("[{}] Build command execution finished ", getCurrentBuildRequest().getId());
             if (!hasExecutedSuccessfully(buildProcess)) {
                 log("Exit message: " + buildProcess.getExitErrorMessage());
                 failed("Error executing the build command");
@@ -191,6 +198,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             }
             stopWatch.stop();
             stopWatch.start(DOWNLOAD_ARTIFACTS);
+            log.debug("[{}] Build execution finished ", getCurrentBuildRequest().getId());
             Optional.ofNullable(request.getVariables().get(ARTIFACT_REGEX)).ifPresent(artifactsRegex -> {
                 getTemporaryArtifactsDir().ifPresent(localArtifactsDir -> {
                     try {
@@ -200,7 +208,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
                             logError("Could not find any artifact with the specified artifactRegex {} ", artifactsRegex);
                         } else {
                             log("downloading {} artifacts from agent", artifacts.size());
-                            artifacts.stream()
+                            artifacts
                                 .forEach(remoteFile -> {
                                     try {
                                         sftpClient.get(remoteFile, localArtifactsDir.getAbsolutePath());
@@ -209,7 +217,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
                                     }
                                 });
                         }
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         log.warn("Error downloading artifacts", e);
                         logError("Error downloading artifacts");
                     }
@@ -217,7 +225,7 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
             });
             stopWatch.stop();
             log(stopWatch.prettyPrint());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logError("BUILD FAILURE: {}", e.getMessage());
             failed("Build has failed, check logs");
         } finally {
@@ -238,17 +246,21 @@ public class SSHBuildExecutorWorker extends BuildExecutorWorker {
 
 
     private List<String> getArtifacts(SSHClient client, String path, String artifactsRegex) {
+        log("Finding artifacts in agent");
         Pattern pattern = Pattern.compile(artifactsRegex);
         try {
             Session session = client.startSession();
             Session.Command find = session.exec(FIND + path);
-            find.join();
-            //if (hasExecutedSuccessfully(find)) {
+            List<String> artifacts;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(find.getInputStream()))) {
-                return reader.lines().filter(file -> pattern.matcher(file).find()).collect(Collectors.toList());
-                }
+                artifacts = reader.lines().filter(file -> pattern.matcher(file).find()).collect(Collectors.toList());
+            }
+            find.join(10L, TimeUnit.SECONDS);
+            return artifacts;
+            //if (hasExecutedSuccessfully(find)) {
+
             //}
-        } catch (IOException e) {
+        } catch (Throwable e) {
             log.warn("Could not get artifacts from path [{}] ", path, e);
 
         }

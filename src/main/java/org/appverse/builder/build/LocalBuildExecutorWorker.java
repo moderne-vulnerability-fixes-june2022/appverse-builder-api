@@ -111,8 +111,7 @@ public class LocalBuildExecutorWorker extends BuildExecutorWorker {
             Process buildProcess = Runtime.getRuntime().exec(buildCommand.asArray());
             redirectInputStream(buildProcess.getInputStream());
             redirectErrorStream(buildProcess.getErrorStream());
-            //TODO externalize this timeout
-            if (!buildProcess.waitFor(30, TimeUnit.MINUTES) || buildProcess.exitValue() != 0) {
+            if (!buildProcess.waitFor(getTimeoutForRequest(), TimeUnit.SECONDS) || buildProcess.exitValue() != 0) {
                 failed("Error executing the build command");
                 return;
             }

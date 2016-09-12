@@ -400,6 +400,7 @@ public class AppverseBuilderProperties {
         private String logFileName = "build.log";
         private String artifactsDirName = "artifacts";
         private String buildIgnoreFileName = ".apbignore";
+        private Long maxBuildTimeout = 1800L; //Default 30 minutes
 
         public String getBuildRootFolderName() {
             return buildRootFolderName;
@@ -519,6 +520,14 @@ public class AppverseBuilderProperties {
 
         public void setBuildIgnoreFileName(String buildIgnoreFileName) {
             this.buildIgnoreFileName = buildIgnoreFileName;
+        }
+
+        public Long getMaxBuildTimeout() {
+            return maxBuildTimeout;
+        }
+
+        public void setMaxBuildTimeout(Long maxBuildTimeout) {
+            this.maxBuildTimeout = maxBuildTimeout;
         }
     }
 

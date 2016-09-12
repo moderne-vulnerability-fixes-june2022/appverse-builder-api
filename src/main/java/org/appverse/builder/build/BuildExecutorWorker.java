@@ -23,8 +23,6 @@ import java.io.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,13 +34,12 @@ import java.util.stream.Stream;
 public abstract class BuildExecutorWorker implements Runnable {
 
     public static final String ARTIFACT_REGEX = "artifactRegex";
+    public static final String BUILD_TIMEOUT = "build.timeout";
     private final Logger log = LoggerFactory.getLogger(BuildExecutorWorker.class);
 
     public static InputStream raceConditionStream() {
         return new ByteArrayInputStream("Something unexpected has happened and we couldn't get the logs, please try again in a few seconds".getBytes());
     }
-
-    private Lock logLock = new ReentrantLock();
 
     @Inject
     private AppverseBuilderProperties appverseBuilderProperties;
@@ -96,11 +93,16 @@ public abstract class BuildExecutorWorker implements Runnable {
     }
 
     protected void log(String line, Object... params) {
+        if (log.isDebugEnabled()) {
+            log.debug("[{}] BUILD-LOG-LINE: {}", currentBuildRequest.getId(), line, params);
+        }
         if (currentLogger != null) {
-            logLock.lock();
-            currentLogger.println(DateTime.now().toString() + " " + MessageFormatter.arrayFormat(line, params).getMessage());
-            currentLogger.flush();
-            logLock.unlock();
+            try {
+                currentLogger.println(DateTime.now().toString() + " " + MessageFormatter.arrayFormat(line, params).getMessage());
+                currentLogger.flush();
+            } catch (Throwable t) {
+                log.debug("Could not write log message {} to build log", line, t);
+            }
         }
     }
 
@@ -143,14 +145,10 @@ public abstract class BuildExecutorWorker implements Runnable {
                 if (currentBuildRequest == null) {
                     return raceConditionStream();
                 } else {
-//                    logLock.lock();
                     final PipedOutputStream pipedOutputStream = new PipedOutputStream();
                     final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
                     final PrintWriter logger = new PrintWriter(pipedOutputStream);
-//                    Files.lines(getBuildLogFile().toPath()).forEachOrdered(logger::println);
-//                    logger.flush();
                     connectedLoggers.add(logger);
-//                    logLock.unlock();
                     return pipedInputStream;
                 }
             } catch (IOException e) {
@@ -293,6 +291,7 @@ public abstract class BuildExecutorWorker implements Runnable {
         BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
         new Thread(() -> {
             errorReader.lines().forEachOrdered(BuildExecutorWorker.this::logError);
+            log.debug("[{}] Finished writing error stream from execution", currentBuildRequest.getId());
         }).start();
     }
 
@@ -300,6 +299,7 @@ public abstract class BuildExecutorWorker implements Runnable {
         BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
         new Thread(() -> {
             errorReader.lines().forEachOrdered(BuildExecutorWorker.this::log);
+            log.debug("[{}] Finished writing logs stream from execution", currentBuildRequest.getId());
         }).start();
     }
 
@@ -317,5 +317,12 @@ public abstract class BuildExecutorWorker implements Runnable {
         FileUtils.writeStringToFile(file, buildCommand.getBuildScript());
         file.setExecutable(true);
         return file;
+    }
+
+    protected Long getTimeoutForRequest() {
+        return Optional
+            .ofNullable(getCurrentBuildRequest().getVariables().get(BUILD_TIMEOUT))
+            .map(Long::parseLong)
+            .orElse(getAppverseBuilderProperties().getBuild().getMaxBuildTimeout());
     }
 }
