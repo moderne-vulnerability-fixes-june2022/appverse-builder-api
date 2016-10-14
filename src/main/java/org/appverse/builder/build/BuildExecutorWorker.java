@@ -317,7 +317,7 @@ public abstract class BuildExecutorWorker implements Runnable {
     protected File createBuildScript(BuildCommand buildCommand, File inputDir) throws IOException {
 
         File file = new File(inputDir, buildCommand.getScriptFileName());
-
+        file.createNewFile();
         try (PrintWriter writer = new PrintWriter(file)) {
 
             if (buildCommand.getBeforeBuildScript() != null) {
@@ -326,6 +326,7 @@ public abstract class BuildExecutorWorker implements Runnable {
             }
             writer.println(ECHO_BUILD);
             writer.println(buildCommand.getBuildScript());
+            writer.flush();
         }
         file.setExecutable(true);
         return file;
