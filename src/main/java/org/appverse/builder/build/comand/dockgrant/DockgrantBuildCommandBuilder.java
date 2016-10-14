@@ -64,6 +64,7 @@ public class DockgrantBuildCommandBuilder implements BuildCommandBuilder<Dockgra
             dockgrantCommand.setImageName(imageName);
         }
 
+        dockgrantCommand.setBeforeBuildScript(Optional.ofNullable(buildRequest.getVariables().get(BuildCommandBuilder.BEFORE_BUILD)).orElse(null));
 
         dockgrantCommand.setBuildScript(Optional.ofNullable(buildRequest.getVariables().get(BuildCommandBuilder.SCRIPT))
             .orElse(null));

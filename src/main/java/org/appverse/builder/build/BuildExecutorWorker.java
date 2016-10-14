@@ -35,6 +35,8 @@ public abstract class BuildExecutorWorker implements Runnable {
 
     public static final String ARTIFACT_REGEX = "artifactRegex";
     public static final String BUILD_TIMEOUT = "build.timeout";
+    public static final String ECHO_BEFORE_BUILD = "echo ==========BEFORE BUILD==========";
+    public static final String ECHO_BUILD = "echo =============BUILD==============";
     private final Logger log = LoggerFactory.getLogger(BuildExecutorWorker.class);
 
     public static InputStream raceConditionStream() {
@@ -313,8 +315,18 @@ public abstract class BuildExecutorWorker implements Runnable {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     protected File createBuildScript(BuildCommand buildCommand, File inputDir) throws IOException {
+
         File file = new File(inputDir, buildCommand.getScriptFileName());
-        FileUtils.writeStringToFile(file, buildCommand.getBuildScript());
+
+        try (PrintWriter writer = new PrintWriter(file)) {
+
+            if (buildCommand.getBeforeBuildScript() != null) {
+                writer.println(ECHO_BEFORE_BUILD);
+                writer.println(buildCommand.getBeforeBuildScript());
+            }
+            writer.println(ECHO_BUILD);
+            writer.println(buildCommand.getBuildScript());
+        }
         file.setExecutable(true);
         return file;
     }

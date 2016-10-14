@@ -47,7 +47,7 @@ public class DockerCommand extends BuildCommand {
             args.add("--rm");
         }
         environmentVariables.forEach((key, value) -> {
-            if (!StringUtils.isEmpty(value) && !value.equals(buildScript)) {
+            if (!StringUtils.isEmpty(value) && !value.equals(buildScript) && value.equals(beforeBuildScript)) {
                 args.add("-e");
                 args.add(key + "='" + value + "'");
             }
