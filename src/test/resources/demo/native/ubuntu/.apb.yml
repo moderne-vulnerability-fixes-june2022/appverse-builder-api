@@ -5,5 +5,7 @@ engine:
   platforms:
     - name: "ubuntu"
       version: 14
+      env:
+        before_build: "echo BEFORE_BUILD"
       flavors:
         - name: "flavor1"

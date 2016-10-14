@@ -42,6 +42,8 @@ public class DockerBuildCommandBuilder implements BuildCommandBuilder<DockerComm
         dockerCommand.setImageName(imageName);
         dockerCommand.setScriptFileName(RandomStringUtils.randomAlphabetic(10) + ".sh");//TODO get from the platform the actual script name and or extension at least to support .sh and .bat
 
+        dockerCommand.setBeforeBuildScript(Optional.ofNullable(buildRequest.getVariables().get(BuildCommandBuilder.BEFORE_BUILD)).orElse(null));
+
         dockerCommand.setBuildScript(Optional.ofNullable(buildRequest.getVariables().get(BuildCommandBuilder.SCRIPT))
             .orElse(null));
         return dockerCommand;

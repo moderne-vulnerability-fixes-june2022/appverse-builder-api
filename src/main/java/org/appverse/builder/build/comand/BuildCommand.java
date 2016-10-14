@@ -14,10 +14,11 @@ public abstract class BuildCommand {
 
 
     protected String buildScript;
-    private String binary;
-    private String workDir;
-    private boolean createScript = true;
-    private String scriptFileName;
+    protected String binary;
+    protected String workDir;
+    protected boolean createScript = true;
+    protected String scriptFileName;
+    protected String beforeBuildScript;
 
     /**
      * Builds the command as String
@@ -92,5 +93,13 @@ public abstract class BuildCommand {
 
     public void setBuildScript(String buildScript) {
         this.buildScript = buildScript;
+    }
+
+    public void setBeforeBuildScript(String beforeBuildScript) {
+        this.beforeBuildScript = beforeBuildScript;
+    }
+
+    public String getBeforeBuildScript() {
+        return beforeBuildScript;
     }
 }

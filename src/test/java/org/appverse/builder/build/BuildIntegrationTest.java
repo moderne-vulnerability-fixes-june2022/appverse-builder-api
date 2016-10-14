@@ -252,10 +252,46 @@ public class BuildIntegrationTest {
 
     }
 
+    @Test
+    @BuildTest(testType = BuildTest.TestType.DOCKER_TEST)
+    public void dockerUbuntuBeforeBuildSampleTest() throws IOException, ZipException, InterruptedException {
+
+        setupLocalBuildAgent();
+
+        setupLocalDistributionChannel();
+        initiateUbuntuEnginePlatform();
+        enginePlatformRepository.save(enginePlatform);
+
+        BuildRequestDTO buildRequest = createUbuntuRequestAndSchedule();
+
+        assertThat(buildRequestService.findOne(buildRequest.getId()).isFinished()).isFalse();
+
+        buildRequestTestUtils.waitStart(buildRequest);
+
+        log.info("buildRequest has started: {}", buildRequestService.findOne(buildRequest.getId()));
+
+        Assertions.assertThat(buildRequestService.findOne(buildRequest.getId()).getStatus()).isNotIn(FAILED, CANCELLED);
+        final Optional<InputStream> logs = buildRequestService.getLogs(buildRequest.getId());
+        assertThat(logs).isPresent();
+
+        assertLogsContainsEchoedMessage(logs.get(), "BEFORE_BUILD");
+
+        buildRequestTestUtils.waitFinish(buildRequest);
+        Assertions.assertThat(buildRequestService.findOne(buildRequest.getId()).getStatus()).isEqualTo(SUCCESSFUL);
+        List<Artifact> buildArtifacts = distributionChannelService.getRequestArtifacts(buildRequest);
+        Assertions.assertThat(buildArtifacts).isNotEmpty();
+        Assertions.assertThat(buildArtifacts.stream().anyMatch(artifact -> TEST_TXT.equals(artifact.getName())));
+
+    }
+
     public void assertLogsContainsEchoedMessage(InputStream logs) {
+        assertLogsContainsEchoedMessage(logs, ECHOED_MESSAGE);
+    }
+
+    public void assertLogsContainsEchoedMessage(InputStream logs, String message) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(logs));
 
-        assertThat(reader.lines().anyMatch(line -> line.contains(ECHOED_MESSAGE))).isTrue();
+        assertThat(reader.lines().anyMatch(line -> line.contains(message))).isTrue();
     }
 
     @Test
