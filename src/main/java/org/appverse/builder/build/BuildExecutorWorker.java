@@ -317,17 +317,16 @@ public abstract class BuildExecutorWorker implements Runnable {
     protected File createBuildScript(BuildCommand buildCommand, File inputDir) throws IOException {
 
         File file = new File(inputDir, buildCommand.getScriptFileName());
-        file.createNewFile();
-        try (PrintWriter writer = new PrintWriter(file)) {
+        StringBuilder builder = new StringBuilder();
+        if (buildCommand.getBeforeBuildScript() != null) {
+            builder.append(ECHO_BEFORE_BUILD).append("\n");
 
-            if (buildCommand.getBeforeBuildScript() != null) {
-                writer.println(ECHO_BEFORE_BUILD);
-                writer.println(buildCommand.getBeforeBuildScript());
-            }
-            writer.println(ECHO_BUILD);
-            writer.println(buildCommand.getBuildScript());
-            writer.flush();
+            builder.append(buildCommand.getBeforeBuildScript()).append("\n");
         }
+        builder.append(ECHO_BUILD).append("\n");
+        builder.append(buildCommand.getBuildScript()).append("\n");
+        FileUtils.writeStringToFile(file, builder.toString());
+
         file.setExecutable(true);
         return file;
     }
