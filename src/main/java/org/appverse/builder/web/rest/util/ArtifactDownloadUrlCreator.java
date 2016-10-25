@@ -9,9 +9,9 @@ import org.appverse.builder.web.rest.dto.BuildRequestDTO;
 import org.joda.time.DateTime;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 
 import javax.inject.Inject;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +35,7 @@ public class ArtifactDownloadUrlCreator {
     public String createArtifactDownloadPath(BuildRequestDTO buildRequestDTO, Artifact artifact) {
         String artifactName = artifact.getName();
         try {
-            artifactName = URLEncoder.encode(artifact.getName(), "UTF-8");
+            artifactName = UriUtils.encodePath(artifact.getName(), "UTF-8");
         } catch (Exception e) {
             LoggerFactory.getLogger(ArtifactDownloadUrlCreator.class).warn("Error encoding artifact name {}", artifact);
         }
