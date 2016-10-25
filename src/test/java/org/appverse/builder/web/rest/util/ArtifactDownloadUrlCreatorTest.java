@@ -11,10 +11,10 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.web.util.UriUtils;
 
 import javax.inject.Inject;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
 
@@ -56,7 +56,7 @@ public class ArtifactDownloadUrlCreatorTest {
 
         Artifact artifact = new Artifact(URI.create("file:///tmp/not-a-file"), artifactName, distributionChannelDTO, 0L);
         String artifactDownloadPath = artifactDownloadUrlCreator.createArtifactDownloadPath(buildRequestDTO, artifact);
-        String encodedArtifactName = URLEncoder.encode(artifact.getName(), "UTF-8");
+        String encodedArtifactName = UriUtils.encodePath(artifact.getName(), "UTF-8");
         System.out.println("encodedArtifactName = " + encodedArtifactName);
         assertThat(artifactDownloadPath).doesNotContain(" ");
         assertThat(artifactDownloadPath).contains(encodedArtifactName);
