@@ -7,13 +7,13 @@ import org.appverse.builder.service.DownloadTokenService;
 import org.appverse.builder.web.rest.ArtifactDownloadResource;
 import org.appverse.builder.web.rest.dto.BuildRequestDTO;
 import org.joda.time.DateTime;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.appverse.builder.web.rest.ArtifactDownloadResource.IPA_MANIFEST;
 
 /**
  * Created by panthro on 03/03/16.
@@ -33,7 +33,13 @@ public class ArtifactDownloadUrlCreator {
     DownloadTokenService downloadTokenService;
 
     public String createArtifactDownloadPath(BuildRequestDTO buildRequestDTO, Artifact artifact) {
-        return appverseBuilderProperties.getBaseUrl() + StrSubstitutor.replace(API_DOWNLOAD_ARTIFACT, buildReplaceMap(buildRequestDTO, artifact.getDistributionChannelId(), artifact.getName()), "{", "}");
+        String artifactName = artifact.getName();
+        try {
+            artifactName = URLEncoder.encode(artifact.getName(), "UTF-8");
+        } catch (Exception e) {
+            LoggerFactory.getLogger(ArtifactDownloadUrlCreator.class).warn("Error encoding artifact name {}", artifact);
+        }
+        return appverseBuilderProperties.getBaseUrl() + StrSubstitutor.replace(API_DOWNLOAD_ARTIFACT, buildReplaceMap(buildRequestDTO, artifact.getDistributionChannelId(), artifactName), "{", "}");
     }
 
 

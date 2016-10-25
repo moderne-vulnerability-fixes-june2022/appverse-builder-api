@@ -1,10 +1,10 @@
 package org.appverse.builder.web.rest.util;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.appverse.builder.Application;
 import org.appverse.builder.distribution.Artifact;
 import org.appverse.builder.web.rest.dto.BuildRequestDTO;
 import org.appverse.builder.web.rest.dto.DistributionChannelDTO;
-import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.IntegrationTest;
@@ -14,6 +14,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,27 @@ public class ArtifactDownloadUrlCreatorTest {
     private Pattern artifactCompressedPattern = Pattern.compile("^.*/api/artifacts/.+/compressed");
 
     private Pattern artifactCompressedDistributtionPattern = Pattern.compile("^.*/api/artifacts/.+/compressed/" + distributionChannelId);
+
+
+    @Test
+    public void createArtifactDownloadPathHasNoInvalidChars() throws Exception {
+
+        artifactName = "A File With Spáce And Ínvalid % chars & also b@d chars?";
+
+        BuildRequestDTO buildRequestDTO = new BuildRequestDTO();
+        buildRequestDTO.setId(1L);
+        buildRequestDTO.setCreatedDate(ZonedDateTime.now());
+        DistributionChannelDTO distributionChannelDTO = new DistributionChannelDTO();
+        distributionChannelDTO.setId(distributionChannelId);
+
+        Artifact artifact = new Artifact(URI.create("file:///tmp/not-a-file"), artifactName, distributionChannelDTO, 0L);
+        String artifactDownloadPath = artifactDownloadUrlCreator.createArtifactDownloadPath(buildRequestDTO, artifact);
+        String encodedArtifactName = URLEncoder.encode(artifact.getName(), "UTF-8");
+        System.out.println("encodedArtifactName = " + encodedArtifactName);
+        assertThat(artifactDownloadPath).doesNotContain(" ");
+        assertThat(artifactDownloadPath).contains(encodedArtifactName);
+
+    }
 
 
     @Test
