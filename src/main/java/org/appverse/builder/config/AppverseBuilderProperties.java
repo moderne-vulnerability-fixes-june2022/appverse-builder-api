@@ -161,6 +161,7 @@ public class AppverseBuilderProperties {
         private String downloadTokenSecret = "P4kjB}+`XZj72NY#YaRq#Vf5*fY5H9?aER7ty2},)U]CQW--A+[4J$pR}f,^-M,9!5RK7tJsY8Cw";
         /**
          * 48h by default
+         * 0 for non expire
          */
         private Integer downloadExpireAfterSeconds = 172800;
         private String nonExpireTokenClientId = "CIClient";
