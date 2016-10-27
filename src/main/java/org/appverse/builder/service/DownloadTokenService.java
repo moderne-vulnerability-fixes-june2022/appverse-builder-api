@@ -86,7 +86,7 @@ public class DownloadTokenService {
             }
 
             Long expireTimestamp = Long.valueOf(tokenList.get(1));
-            if (expireTimestamp < System.currentTimeMillis()) {
+            if (Optional.ofNullable(appverseBuilderProperties.getAuth().getDownloadExpireAfterSeconds()).orElse(0) > 0 && expireTimestamp < System.currentTimeMillis()) {
                 return Optional.empty();
             }
 

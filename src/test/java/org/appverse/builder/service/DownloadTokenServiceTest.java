@@ -9,6 +9,7 @@ import org.appverse.builder.domain.enumeration.BuildStatus;
 import org.appverse.builder.repository.BuildChainRepository;
 import org.appverse.builder.security.SecurityTestUtils;
 import org.appverse.builder.web.rest.dto.BuildRequestDTO;
+import org.appverse.builder.web.rest.util.ArtifactDownloadUrlCreator;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +44,9 @@ public class DownloadTokenServiceTest {
     private DownloadTokenService downloadTokenService;
 
     @Inject
+    private ArtifactDownloadUrlCreator artifactDownloadUrlCreator;
+
+    @Inject
     private BuildRequestService buildRequestService;
 
     @Inject
@@ -62,18 +66,50 @@ public class DownloadTokenServiceTest {
         buildChainRepository.save(buildChain);
     }
 
+
+    @Test
+    public void testTokenIsAlwaysValidWhenExpiryIsZero() throws InterruptedException {
+
+        BuildRequestDTO saved = createBuildRequest();
+        assertThat(saved.getId()).isNotNull();
+
+
+        appverseBuilderProperties.getAuth().setDownloadExpireAfterSeconds(0);
+
+        //make sure time passes at least 2 secs
+
+        Thread.sleep(2000);
+
+        String token = downloadTokenService.createToken(saved, artifactDownloadUrlCreator.getExpiryTimestamp());
+        log.debug("Generated token: {}", token);
+
+        Optional<BuildRequestDTO> buildRequestDTOOptional = downloadTokenService.extractBuildRequestFromToken(token);
+        assertThat(buildRequestDTOOptional).isPresent();
+
+        assertThat(buildRequestDTOOptional).contains(saved);
+
+        //test old tokens also not expire
+        token = downloadTokenService.createToken(saved, DateTime.now().minusDays(2).getMillis());
+
+
+        buildRequestDTOOptional = downloadTokenService.extractBuildRequestFromToken(token);
+        assertThat(buildRequestDTOOptional).isPresent();
+
+        assertThat(buildRequestDTOOptional).contains(saved);
+
+        //test it expires if date is then set
+        appverseBuilderProperties.getAuth().setDownloadExpireAfterSeconds(10000);
+
+        buildRequestDTOOptional = downloadTokenService.extractBuildRequestFromToken(token);
+        assertThat(buildRequestDTOOptional).isEmpty();
+
+    }
+
+
     @Test
     public void testTokenIsValid() {
 
-        BuildRequestDTO buildRequestDTO = new BuildRequestDTO();
-        buildRequestDTO.setEngine(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setPlatform(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setFlavor(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setChainId(buildChainRepository.findAll().stream().findAny().get().getId());
-        buildRequestDTO.setStatus(BuildStatus.SUCCESSFUL);
-        buildRequestDTO.setStartTime(ZonedDateTime.now());
-
-        BuildRequestDTO saved = buildRequestService.save(buildRequestDTO);
+        BuildRequestDTO saved = createBuildRequest();
 
         assertThat(saved.getId()).isNotNull();
 
@@ -87,9 +123,7 @@ public class DownloadTokenServiceTest {
 
     }
 
-    @Test
-    public void textTokenExpired() {
-
+    private BuildRequestDTO createBuildRequest() {
         BuildRequestDTO buildRequestDTO = new BuildRequestDTO();
         buildRequestDTO.setEngine(RandomStringUtils.randomAlphanumeric(5));
         buildRequestDTO.setPlatform(RandomStringUtils.randomAlphanumeric(5));
@@ -98,7 +132,13 @@ public class DownloadTokenServiceTest {
         buildRequestDTO.setStatus(BuildStatus.SUCCESSFUL);
         buildRequestDTO.setStartTime(ZonedDateTime.now());
 
-        BuildRequestDTO saved = buildRequestService.save(buildRequestDTO);
+        return buildRequestService.save(buildRequestDTO);
+    }
+
+    @Test
+    public void textTokenExpired() {
+
+        BuildRequestDTO saved = createBuildRequest();
 
         assertThat(saved.getId()).isNotNull();
 
@@ -114,15 +154,7 @@ public class DownloadTokenServiceTest {
     @Test
     public void textSecretUpdate() {
 
-        BuildRequestDTO buildRequestDTO = new BuildRequestDTO();
-        buildRequestDTO.setEngine(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setPlatform(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setFlavor(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setChainId(buildChainRepository.findAll().stream().findAny().get().getId());
-        buildRequestDTO.setStatus(BuildStatus.SUCCESSFUL);
-        buildRequestDTO.setStartTime(ZonedDateTime.now());
-
-        BuildRequestDTO saved = buildRequestService.save(buildRequestDTO);
+        BuildRequestDTO saved = createBuildRequest();
 
         assertThat(saved.getId()).isNotNull();
 
@@ -139,15 +171,7 @@ public class DownloadTokenServiceTest {
     @Test
     public void textSignatureManipulation() throws UnsupportedEncodingException {
 
-        BuildRequestDTO buildRequestDTO = new BuildRequestDTO();
-        buildRequestDTO.setEngine(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setPlatform(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setFlavor(RandomStringUtils.randomAlphanumeric(5));
-        buildRequestDTO.setChainId(buildChainRepository.findAll().stream().findAny().get().getId());
-        buildRequestDTO.setStatus(BuildStatus.SUCCESSFUL);
-        buildRequestDTO.setStartTime(ZonedDateTime.now());
-
-        BuildRequestDTO saved = buildRequestService.save(buildRequestDTO);
+        BuildRequestDTO saved = createBuildRequest();
 
         assertThat(saved.getId()).isNotNull();
 
