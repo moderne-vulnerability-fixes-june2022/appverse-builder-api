@@ -107,7 +107,7 @@ In case the `apb-cli` have been built with a different setup than the original, 
 
 ## Download Token and Registration customization parameters
 * __apb.auth.download-token-secret__ = the token to be used when generating download links (a default secure one is provided)
-* __apb.auth.download-expire-after-seconds (default __172800__ _48h_)_ = the amount, in seconds, that a download token should expire after it's creation 
+* __apb.auth.download-expire-after-seconds__ (default __172800__ _48h_)_ = the amount, in seconds, that a download token should expire after it's creation. Set it to __0__ (zero) for non expiring tokens.
 * __apb.auth.registrationEnabled__ = `true` or `false` to enable/disable user registration.
 
 ## Build customization
