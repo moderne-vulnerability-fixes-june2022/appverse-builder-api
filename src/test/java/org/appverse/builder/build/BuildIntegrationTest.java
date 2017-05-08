@@ -44,7 +44,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.appverse.builder.domain.enumeration.BuildStatus.*;
 import static org.assertj.core.api.StrictAssertions.assertThat;
@@ -245,21 +248,50 @@ public class BuildIntegrationTest {
         Assertions.assertThat(buildRequestService.findOne(buildRequest.getId()).getStatus()).isEqualTo(SUCCESSFUL);
         List<Artifact> buildArtifacts = distributionChannelService.getRequestArtifacts(buildRequest);
         Assertions.assertThat(buildArtifacts).isNotEmpty();
-        //Assertions.assertThat(buildArtifacts.stream().map(Artifact::getName).collect(Collectors.toList())).contains(TEST_TXT);
+        Assertions.assertThat(buildArtifacts.stream().anyMatch(artifact -> TEST_TXT.equals(artifact.getName())));
+
+    }
+
+    @Test
+    @BuildTest(testType = BuildTest.TestType.DOCKER_TEST)
+    public void dockerUbuntuBeforeBuildSampleTest() throws IOException, ZipException, InterruptedException {
+
+        setupLocalBuildAgent();
+
+        setupLocalDistributionChannel();
+        initiateUbuntuEnginePlatform();
+        enginePlatformRepository.save(enginePlatform);
+
+        BuildRequestDTO buildRequest = createUbuntuRequestAndSchedule();
+
+        assertThat(buildRequestService.findOne(buildRequest.getId()).isFinished()).isFalse();
+
+        buildRequestTestUtils.waitStart(buildRequest);
+
+        log.info("buildRequest has started: {}", buildRequestService.findOne(buildRequest.getId()));
+
+        Assertions.assertThat(buildRequestService.findOne(buildRequest.getId()).getStatus()).isNotIn(FAILED, CANCELLED);
+        final Optional<InputStream> logs = buildRequestService.getLogs(buildRequest.getId());
+        assertThat(logs).isPresent();
+
+        assertLogsContainsEchoedMessage(logs.get(), "BEFORE_BUILD");
+
+        buildRequestTestUtils.waitFinish(buildRequest);
+        Assertions.assertThat(buildRequestService.findOne(buildRequest.getId()).getStatus()).isEqualTo(SUCCESSFUL);
+        List<Artifact> buildArtifacts = distributionChannelService.getRequestArtifacts(buildRequest);
+        Assertions.assertThat(buildArtifacts).isNotEmpty();
+        Assertions.assertThat(buildArtifacts.stream().anyMatch(artifact -> TEST_TXT.equals(artifact.getName())));
 
     }
 
     public void assertLogsContainsEchoedMessage(InputStream logs) {
+        assertLogsContainsEchoedMessage(logs, ECHOED_MESSAGE);
+    }
+
+    public void assertLogsContainsEchoedMessage(InputStream logs, String message) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(logs));
-        List<String> lines = new ArrayList<String>() {
-            @Override
-            public boolean add(String o) {
-                log.debug("BUILD-LOG-LINE: {}", o);
-                return super.add(o);
-            }
-        };
-        reader.lines().forEachOrdered(lines::add);
-        assertThat(lines.stream().anyMatch(line -> line.contains(ECHOED_MESSAGE))).isTrue();
+
+        assertThat(reader.lines().anyMatch(line -> line.contains(message))).isTrue();
     }
 
     @Test

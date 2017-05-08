@@ -1,3 +1,0 @@
-# Build Agent properties
-
-## TODO

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.StopWatch;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -56,7 +57,7 @@ public class SwaggerConfiguration {
             .apiInfo(apiInfo)
             .genericModelSubstitutes(ResponseEntity.class)
             .forCodeGeneration(true)
-            .ignoredParameterTypes(Pageable.class)
+            .ignoredParameterTypes(Pageable.class, OAuth2Authentication.class)
             .genericModelSubstitutes(ResponseEntity.class)
             .directModelSubstitute(java.time.LocalDate.class, String.class)
             .directModelSubstitute(java.time.ZonedDateTime.class, Date.class)

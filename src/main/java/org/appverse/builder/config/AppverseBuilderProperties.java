@@ -161,8 +161,11 @@ public class AppverseBuilderProperties {
         private String downloadTokenSecret = "P4kjB}+`XZj72NY#YaRq#Vf5*fY5H9?aER7ty2},)U]CQW--A+[4J$pR}f,^-M,9!5RK7tJsY8Cw";
         /**
          * 48h by default
+         * 0 for non expire
          */
         private Integer downloadExpireAfterSeconds = 172800;
+        private String nonExpireTokenClientId = "CIClient";
+        private String nonExpireTokenScope = "ci";
 
         public Ldap getLdap() {
             return Ldap;
@@ -196,6 +199,22 @@ public class AppverseBuilderProperties {
             this.downloadExpireAfterSeconds = downloadExpireAfterSeconds;
         }
 
+        public String getNonExpireTokenClientId() {
+            return nonExpireTokenClientId;
+        }
+
+        public void setNonExpireTokenClientId(String nonExpireTokenClientId) {
+            this.nonExpireTokenClientId = nonExpireTokenClientId;
+        }
+
+        public String getNonExpireTokenScope() {
+            return nonExpireTokenScope;
+        }
+
+        public void setNonExpireTokenScope(String nonExpireTokenScope) {
+            this.nonExpireTokenScope = nonExpireTokenScope;
+        }
+
         public static class Ldap {
 
             private boolean enabled = false;
@@ -214,6 +233,7 @@ public class AppverseBuilderProperties {
             private String firstNameAttribute = "givenName";
             private String lastNameAttribute = "sn";
             private String fullNameAttribute = "cn";
+            private String defaultEmailDomain = "appverse.org";
 
             public boolean isEnabled() {
                 return enabled;
@@ -343,6 +363,14 @@ public class AppverseBuilderProperties {
             public void setFullNameAttribute(String fullNameAttribute) {
                 this.fullNameAttribute = fullNameAttribute;
             }
+
+            public String getDefaultEmailDomain() {
+                return defaultEmailDomain;
+            }
+
+            public void setDefaultEmailDomain(String defaultEmailDomain) {
+                this.defaultEmailDomain = defaultEmailDomain;
+            }
         }
     }
 
@@ -373,6 +401,7 @@ public class AppverseBuilderProperties {
         private String logFileName = "build.log";
         private String artifactsDirName = "artifacts";
         private String buildIgnoreFileName = ".apbignore";
+        private Long maxBuildTimeout = 1800L; //Default 30 minutes
 
         public String getBuildRootFolderName() {
             return buildRootFolderName;
@@ -492,6 +521,14 @@ public class AppverseBuilderProperties {
 
         public void setBuildIgnoreFileName(String buildIgnoreFileName) {
             this.buildIgnoreFileName = buildIgnoreFileName;
+        }
+
+        public Long getMaxBuildTimeout() {
+            return maxBuildTimeout;
+        }
+
+        public void setMaxBuildTimeout(Long maxBuildTimeout) {
+            this.maxBuildTimeout = maxBuildTimeout;
         }
     }
 

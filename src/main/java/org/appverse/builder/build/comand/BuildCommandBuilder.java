@@ -8,6 +8,8 @@ import org.appverse.builder.web.rest.dto.BuildRequestDTO;
  */
 public interface BuildCommandBuilder<T extends BuildCommand> {
 
+    String BEFORE_BUILD = "before_build";
+
     String SCRIPT = "script";
 
     String IMAGE_NAME = "imageName";

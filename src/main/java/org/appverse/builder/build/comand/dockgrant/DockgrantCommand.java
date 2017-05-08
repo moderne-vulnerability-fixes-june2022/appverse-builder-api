@@ -44,9 +44,9 @@ public class DockgrantCommand extends BuildCommand {
 
 
         environmentVariables.forEach((key, value) -> {
-            if (!StringUtils.isEmpty(value) && !value.equals(buildScript)) {
+            if (!StringUtils.isEmpty(value) && !value.equals(buildScript) && !value.equals(beforeBuildScript)) {
                 args.add("-e");
-                args.add(key + "=" + value);
+                args.add(key + "='" + value + "'");
             }
         });
         args.add("--image");
@@ -58,9 +58,10 @@ public class DockgrantCommand extends BuildCommand {
         if (imageUrl != null) {
             args.add("--imageurl=" + getImageUrl());
         }
-        if (getBuildScript() != null) {
-
+        if (isQuiet()) {
+            args.add("-q");
         }
+
         if (getBuildScript() != null) {
             args.add("--script");
             if (!isCreateScript()) {

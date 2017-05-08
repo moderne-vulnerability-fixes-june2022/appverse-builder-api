@@ -1,12 +1,16 @@
 package org.appverse.builder.web.rest;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.appverse.builder.Application;
 import org.appverse.builder.domain.Engine;
 import org.appverse.builder.domain.EnginePlatform;
+import org.appverse.builder.domain.EnginePlatformVariable;
 import org.appverse.builder.domain.enumeration.ImageType;
 import org.appverse.builder.repository.EnginePlatformRepository;
+import org.appverse.builder.repository.EnginePlatformVariableRepository;
 import org.appverse.builder.repository.EngineRepository;
 import org.appverse.builder.service.EnginePlatformService;
+import org.appverse.builder.service.EnginePlatformVariableService;
 import org.appverse.builder.web.rest.dto.EnginePlatformDTO;
 import org.appverse.builder.web.rest.mapper.EnginePlatformMapper;
 import org.junit.Before;
@@ -24,6 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -32,6 +37,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -78,6 +84,12 @@ public class EnginePlatformResourceIntTest {
     @Inject
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
 
+    @Inject
+    private EnginePlatformVariableRepository enginePlatformVariableRepository;
+
+    @Inject
+    private EnginePlatformVariableService enginePlatformVariableService;
+
     private MockMvc restEnginePlatformMockMvc;
 
     private EnginePlatform enginePlatform;
@@ -90,6 +102,7 @@ public class EnginePlatformResourceIntTest {
         EnginePlatformResource enginePlatformResource = new EnginePlatformResource();
         ReflectionTestUtils.setField(enginePlatformResource, "enginePlatformService", enginePlatformService);
         ReflectionTestUtils.setField(enginePlatformResource, "enginePlatformMapper", enginePlatformMapper);
+        ReflectionTestUtils.setField(enginePlatformResource, "enginePlatformVariableService", enginePlatformVariableService);
         this.restEnginePlatformMockMvc = MockMvcBuilders.standaloneSetup(enginePlatformResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();
@@ -317,5 +330,26 @@ public class EnginePlatformResourceIntTest {
         // Validate the database is empty
         List<EnginePlatform> enginePlatforms = enginePlatformRepository.findAll();
         assertThat(enginePlatforms).hasSize(databaseSizeBeforeDelete - 1);
+    }
+
+    @Test
+    @Transactional
+    public void getEnginePlatformVariables() throws Exception {
+        // Initialize the database
+        engineRepository.save(engine);
+        enginePlatformRepository.saveAndFlush(enginePlatform);
+
+        EnginePlatformVariable variable = new EnginePlatformVariable(RandomStringUtils.randomAlphabetic(10),RandomStringUtils.randomAlphabetic(10),Boolean.TRUE,enginePlatform);
+        variable = enginePlatformVariableRepository.save(variable);
+
+        // Get the enginePlatform
+        restEnginePlatformMockMvc.perform(get("/api/enginePlatforms/variables/{id}", enginePlatform.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$[*].id").value(variable.getId().intValue()))
+            .andExpect(jsonPath("$[*].name").value(variable.getName()))
+            .andExpect(jsonPath("$[*].description").value(variable.getDescription()))
+            .andExpect(jsonPath("$[*].defaultValue").value(variable.getDefaultValue()))
+            .andExpect(jsonPath("$[*].required").value(variable.getRequired()));
     }
 }

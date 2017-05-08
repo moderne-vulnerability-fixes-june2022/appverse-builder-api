@@ -49,6 +49,7 @@ public class DockgrantBuildCommandBuilder implements BuildCommandBuilder<Dockgra
         dockgrantCommand.setRequestInputDir(buildAgentService.getBuildAgentRemoteRequestInputDir(buildAgent, buildRequest));
         dockgrantCommand.getEnvironmentVariables().putAll(buildRequest.getVariables());
         dockgrantCommand.setScriptFileName(RandomStringUtils.randomAlphabetic(10) + ".sh");//TODO get from the platform the actual script name and or extension at least to support .sh and .bat
+        dockgrantCommand.setQuiet(!log.isDebugEnabled());
 
 
         String imageName = Optional.ofNullable(buildRequest.getVariables().get(IMAGE_NAME))
@@ -63,6 +64,7 @@ public class DockgrantBuildCommandBuilder implements BuildCommandBuilder<Dockgra
             dockgrantCommand.setImageName(imageName);
         }
 
+        dockgrantCommand.setBeforeBuildScript(Optional.ofNullable(buildRequest.getVariables().get(BuildCommandBuilder.BEFORE_BUILD)).orElse(null));
 
         dockgrantCommand.setBuildScript(Optional.ofNullable(buildRequest.getVariables().get(BuildCommandBuilder.SCRIPT))
             .orElse(null));
