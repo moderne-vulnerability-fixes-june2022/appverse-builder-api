@@ -43,6 +43,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -153,9 +154,7 @@ public class BuildRequestResourceIntTest {
     public void initTest() throws IOException {
 
         //Setup distribution channel
-        tempDistributionChannelRoot = File.createTempFile("temp", Long.toString(System.nanoTime()));
-        tempDistributionChannelRoot.delete();
-        tempDistributionChannelRoot.mkdir();
+        tempDistributionChannelRoot = Files.createTempDirectory("temp" + Long.toString(System.nanoTime())).toFile();
 
 
         DistributionChannel distributionChannel = new DistributionChannel();
